@@ -37,5 +37,5 @@ Desarrollo embebido en el flujo de trabajo real de los médicos en Google Docs (
 ---
 
 ## 👩‍💻 Desarrollado por
-* **Ingeniería en Inteligencia Artificial y Ciencia de Datos**
+* **Ingeniera Mecatronica y Estudiante de Maestria en Inteligencia Artificial y Ciencia de Datos**
 * Proyecto de innovación en HealthTech y Data Governance.
