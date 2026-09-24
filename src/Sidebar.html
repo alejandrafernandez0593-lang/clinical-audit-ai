@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        margin: 0;
+      }
+      #bloqueoAuth {
+        background: white;
+        padding: 20px 15px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-top: 15px;
+      }
+      .input-pin {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+        text-align: center;
+        border: 2px solid #ced4da;
+        border-radius: 6px;
+        letter-spacing: 4px;
+        margin: 15px 0;
+      }
+      #panelPrincipal { display: none; }
+      .tab-header {
+        display: flex;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 12px;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 8px 4px;
+        background: none;
+        border: none;
+        font-weight: bold;
+        font-size: 12px;
+        color: #6c757d;
+        cursor: pointer;
+        text-align: center;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+      }
+      .tab-btn.active {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+      }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; }
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        font-weight: bold;
+        border-radius: 4px;
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+      .badge-ALTO { background-color: #f8d7da; color: #721c24; }
+      .badge-MEDIO { background-color: #fff3cd; color: #856404; }
+      .badge-BAJO { background-color: #d4edda; color: #155724; }
+      .alerta-box {
+        background: white;
+        border-left: 4px solid #dc3545;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        margin-bottom: 10px;
+      }
+      .seccion-titulo {
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #555;
+        margin-top: 10px;
+        margin-bottom: 4px;
+      }
+      .caja-texto {
+        background: white;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      select {
+        width: 100%;
+        padding: 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .progreso-contenedor {
+        background-color: #e9ecef;
+        border-radius: 8px;
+        height: 18px;
+        width: 100%;
+        overflow: hidden;
+        margin: 4px 0 10px 0;
+      }
+      .barra-progreso {
+        height: 100%;
+        text-align: center;
+        color: white;
+        font-size: 11px;
+        font-weight: bold;
+        line-height: 18px;
+      }
+      .btn {
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn:hover { background-color: #0056b3; }
+      .btn-optimizar { background-color: #28a745; margin-top: 10px; }
+      .btn-optimizar:hover { background-color: #218838; }
+      .btn-copiar { background-color: #17a2b8; margin-top: 8px; }
+      .toast {
+        display: none;
+        position: fixed;
+        bottom: 15px;
+        left: 10px;
+        right: 10px;
+        color: white;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 12px;
+        text-align: center;
+        z-index: 1000;
+      }
+      #toastExito { background-color: #28a745; }
+      #toastError { background-color: #dc3545; }
+      #cargando, #cargandoEnt { display: none; text-align: center; font-style: italic; color: #666; margin: 15px 0; }
+    </style>
+  </head>
+  <body>
+
+    <!-- BLOQUEO POR PIN -->
+    <div id="bloqueoAuth">
+      <div style="font-size: 32px;">🔒</div>
+      <h4 style="margin: 5px 0;">Auditor Clínico IA</h4>
+      <p style="font-size: 12px; color: #666;">Acceso exclusivo para el Médico Docente.</p>
+      <input type="password" id="inputPIN" class="input-pin" placeholder="••••" maxlength="8">
+      <button class="btn" onclick="desbloquear()">Desbloquear</button>
+    </div>
+
+    <!-- PANEL PRINCIPAL (2 PESTAÑAS CLARAS) -->
+    <div id="panelPrincipal">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 11px; font-weight: bold; color: #28a745;">🟢 Sesión de Docente</span>
+        <button onclick="bloquear()" style="background:none; border:none; font-size: 11px; color:#dc3545; cursor:pointer;">Bloquear</button>
+      </div>
+
+      <!-- Menú de 2 Pestañas -->
+      <div class="tab-header">
+        <button class="tab-btn active" onclick="cambiarTab('tabAuditoria')">🩺 Auditoría & Copy-Paste</button>
+        <button class="tab-btn" onclick="cambiarTab('tabEnterprise')">🚀 Enterprise</button>
+      </div>
+
+      <!-- PESTAÑA 1: AUDITORÍA + COPY-PASTE EN TIEMPO REAL -->
+      <div id="tabAuditoria" class="tab-content active">
+        <div class="seccion-titulo">Fecha / Nota a Evaluar:</div>
+        <select id="comboNotas" onchange="alCambiarNota()"></select>
+
+        <button class="btn" id="btnAuditar" onclick="ejecutarAuditoria()">🔍 Auditar en Tiempo Real</button>
+        <div id="cargando">Verificando evolución y duplicidad... ⏳</div>
+
+        <div id="resultados" style="display:none; margin-top: 12px;">
+          <div id="badgeRiesgo" class="badge"></div>
+
+          <!-- Barra de Copy-Paste en Tiempo Real -->
+          <div class="seccion-titulo">Duplicidad vs. Nota Previa (Jaccard):</div>
+          <div class="progreso-contenedor">
+            <div id="barraSimilitud" class="barra-progreso">0%</div>
+          </div>
+
+          <div class="alerta-box" id="cajaAlerta">
+            <strong>Alerta Principal:</strong>
+            <p id="alertaTexto" style="margin: 4px 0 0 0; font-size: 12px;"></p>
+          </div>
+
+          <div id="seccionIncongruencias">
+            <div class="seccion-titulo">Incongruencias Detectadas:</div>
+            <ul id="listaIncongruencias" style="margin:0; padding-left: 18px; font-size: 12px;"></ul>
+          </div>
+
+          <div class="seccion-titulo">Análisis Ultraconciso Sugerido (3 líneas):</div>
+          <div id="textoOptimizado" class="caja-texto"></div>
+          <button class="btn btn-optimizar" onclick="aplicarOptimizacion()">✨ Reemplazar Análisis en Doc</button>
+
+          <div class="seccion-titulo">Observación para el Estudiante:</div>
+          <div id="recomendacionDocente" class="caja-texto" style="background-color: #e8f4fd;"></div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA 2: ENTERPRISE -->
+      <div id="tabEnterprise" class="tab-content">
+        <p style="font-size: 11px; color: #666; margin-top: 0;">
+          Genera el paquete firmado digitalmente según la <strong>Ley 2015 de 2020</strong>:
+        </p>
+
+        <button class="btn" style="background-color: #28a745;" onclick="generarSello()">🔒 Generar Sello Legal para Enterprise</button>
+        <div id="cargandoEnt">Sellando digitalmente (SHA-256)... ⏳</div>
+
+        <div id="resultadosEnt" style="display:none; margin-top: 12px;">
+          <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 8px; font-size: 11px; color: #155724; margin-bottom: 8px;">
+            <strong>🛡️ Sello Ley 2015 de 2020:</strong><br>
+            • <strong>Hash SHA-256:</strong> <span id="hashTexto" style="font-family: monospace; font-weight: bold;"></span><br>
+            • <strong>Fecha/Hora:</strong> <span id="fechaTexto"></span>
+          </div>
+
+          <div class="seccion-titulo">Texto Formateado para Enterprise:</div>
+          <textarea id="textoCopiaEnterprise" rows="8" readonly style="width: 95%; font-size: 11px; background-color: #f1f3f4; border: 1px solid #ccc; border-radius: 4px; padding: 6px; font-family: monospace;"></textarea>
+          <button class="btn btn-copiar" onclick="copiarAlPortapapeles()">📋 Copiar Todo para Enterprise</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastExito" class="toast">✅ ¡Acción exitosa!</div>
+    <div id="toastError" class="toast"></div>
+
+    <script>
+      var pinSesion = "";
+      var analisisGlobal = "";
+      var indiceGlobal = 0;
+
+      function desbloquear() {
+        pinSesion = document.getElementById('inputPIN').value.trim();
+        if (!pinSesion) return;
+        document.getElementById('bloqueoAuth').style.display = 'none';
+        document.getElementById('panelPrincipal').style.display = 'block';
+        cargarCombo();
+      }
+
+      function bloquear() {
+        pinSesion = "";
+        document.getElementById('inputPIN').value = "";
+        document.getElementById('panelPrincipal').style.display = 'none';
+        document.getElementById('bloqueoAuth').style.display = 'block';
+      }
+
+      function cambiarTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      }
+
+      function mostrarToast(id, msg, time) {
+        var t = document.getElementById(id);
+        if (msg) t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', time || 3500);
+      }
+
+      function cargarCombo() {
+        google.script.run
+          .withSuccessHandler(notas => {
+            var combo = document.getElementById('comboNotas');
+            combo.innerHTML = '';
+            notas.forEach((n, idx) => {
+              var opt = document.createElement('option');
+              opt.value = idx;
+              opt.innerText = n.etiqueta;
+              combo.appendChild(opt);
+            });
+            combo.selectedIndex = notas.length - 1; // Selecciona la última por defecto
+            alCambiarNota();
+          })
+          .withFailureHandler(err => mostrarToast('toastError', "⚠️ " + err.message, 4000))
+          .obtenerListaNotas();
+      }
+
+      function alCambiarNota() {
+        var combo = document.getElementById('comboNotas');
+        indiceGlobal = parseInt(combo.value, 10);
+        google.script.run.enfocarNotaEnDoc(indiceGlobal);
+      }
+
+      function ejecutarAuditoria() {
+        document.getElementById('cargando').style.display = 'block';
+        document.getElementById('resultados').style.display = 'none';
+        document.getElementById('btnAuditar').disabled = true;
+
+        google.script.run
+          .withSuccessHandler(data => {
+            document.getElementById('cargando').style.display = 'none';
+            document.getElementById('btnAuditar').disabled = false;
+
+            analisisGlobal = data.analisis_optimizado;
+
+            var badge = document.getElementById('badgeRiesgo');
+            badge.className = 'badge badge-' + data.nivel_riesgo;
+            badge.innerText = 'RIESGO ' + data.nivel_riesgo;
+
+            var barra = document.getElementById('barraSimilitud');
+            var pct = data.porcentaje_duplicidad || 0;
+            barra.style.width = pct + "%";
+            barra.innerText = pct + "% de duplicidad";
+            barra.style.backgroundColor = pct > 60 ? '#dc3545' : (pct > 35 ? '#ffc107' : '#28a745');
+
+            document.getElementById('cajaAlerta').style.borderLeftColor = data.es_coherente ? '#28a745' : '#dc3545';
+            document.getElementById('alertaTexto').innerText = data.alerta_principal;
+
+            var lista = document.getElementById('listaIncongruencias');
+            lista.innerHTML = '';
+            if (data.incongruencias_detectadas && data.incongruencias_detectadas.length > 0) {
+              data.incongruencias_detectadas.forEach(item => {
+                var li = document.createElement('li');
+                li.innerText = item;
+                lista.appendChild(li);
+              });
+              document.getElementById('seccionIncongruencias').style.display = 'block';
+            } else {
+              document.getElementById('seccionIncongruencias').style.display = 'none';
+            }
+
+            document.getElementById('textoOptimizado').innerText = data.analisis_optimizado;
+            document.getElementById('recomendacionDocente').innerText = data.recomendacion_docente;
+
+            document.getElementById('resultados').style.display = 'block';
+          })
+          .withFailureHandler(err => {
+            document.getElementById('cargando').style.display = 'none';
+            document.getElementById('btnAuditar').disabled = false;
+            mostrarToast('toastError', "⚠️ " + err.message, 4500);
+            if (err.message.indexOf("PIN") !== -1) bloquear();
+          })
+          .auditarNotaPorIndice(indiceGlobal, pinSesion);
+      }
+
+      function aplicarOptimizacion() {
+        if (!analisisGlobal) return;
+        google.script.run
+          .withSuccessHandler(() => mostrarToast('toastExito', "✅ ¡Análisis reemplazado con éxito!", 3000))
+          .withFailureHandler(err => mostrarToast('toastError', "❌ Error: " + err.message, 4000))
+          .reemplazarAnalisisPorIndice(indiceGlobal, analisisGlobal);
+      }
+
+      function generarSello() {
+        document.getElementById('cargandoEnt').style.display = 'block';
+        document.getElementById('resultadosEnt').style.display = 'none';
+
+        google.script.run
+          .withSuccessHandler(resp => {
+            document.getElementById('cargandoEnt').style.display = 'none';
+            document.getElementById('hashTexto').innerText = resp.hash;
+            document.getElementById('fechaTexto').innerText = resp.fechaHora;
+            document.getElementById('textoCopiaEnterprise').value = resp.textoEnterprise;
+            document.getElementById('resultadosEnt').style.display = 'block';
+          })
+          .withFailureHandler(err => {
+            document.getElementById('cargandoEnt').style.display = 'none';
+            mostrarToast('toastError', "⚠️ " + err.message, 4000);
+          })
+          .generarSelloEnterprisePorIndice(indiceGlobal);
+      }
+
+      function copiarAlPortapapeles() {
+        var copyText = document.getElementById('textoCopiaEnterprise');
+        copyText.select();
+        document.execCommand('copy');
+        mostrarToast('toastExito', "📋 ¡Copiado al portapapeles para Enterprise!", 3000);
+      }
+    </script>
+  </body>
+</html>
